@@ -1,0 +1,56 @@
+service: cloud-backend-test
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-dynamodb-local
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    port: 9000
+    useChildProcesses: true
+  dynamodb:
+    stages:
+      - local
+    start:
+      port: 8000
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: ${opt:stage, 'local'}
+  environment:
+    NODE_ENV: ${env:NODE_ENV}
+
+functions:
+  helloWorld:
+    handler: dist/handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+  graphql:
+    handler: dist/handler.graphql
+    events:
+      - http:
+          path: graphql
+          method: get
+          timeout: 30
+      - http:
+          path: graphql
+          method: post
+          cors: true
+          timeout: 30
+
+package:
+  include:
+    - dist/**
+    - node_modules/**
+  exclude:
+    - src/tests/*
+
+#resources:
+
